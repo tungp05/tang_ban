@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#d85b91">
+<title>Món quà dành cho cậu</title>
+<style>
+:root{--pink:#d95791;--pink2:#f18db8;--rose:#ffb8d8;--ink:#31152b;--glass:rgba(255,240,249,.13)}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#fff}
+body{background:radial-gradient(ellipse at 15% 15%,#f49ac5 0,#d65d99 32%,#a84a8b 65%,#613d80 100%)}
+button{font:inherit;color:inherit;cursor:pointer}
+.bg-stars{position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(circle at 80% 22%,rgba(255,255,255,.12),transparent 28%),radial-gradient(circle at 20% 80%,rgba(255,202,230,.13),transparent 32%)}
+#sparkleCanvas,#fallCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+#sparkleCanvas{z-index:1}
+#fallCanvas{z-index:2}
+.screen{position:fixed;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;padding:22px;opacity:0;visibility:hidden;transition:opacity .45s,transform .45s;transform:translateY(8px)}
+.screen.active{opacity:1;visibility:visible;transform:none}
+.card-shell{width:min(440px,100%);text-align:center;padding:clamp(20px,6vw,34px);border-radius:28px;background:rgba(255,245,251,.13);border:1px solid rgba(255,255,255,.22);box-shadow:0 18px 70px rgba(69,13,55,.2);backdrop-filter:blur(12px)}
+.kicker{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#ffe0ef;margin-bottom:10px}
+h1{font-size:clamp(24px,7vw,34px);line-height:1.15;margin:0 0 12px;text-shadow:0 2px 18px #b8488a}
+p{color:#ffe5f2;line-height:1.65}
+.pin-display{display:flex;justify-content:center;gap:13px;margin:26px auto 18px}
+.pin-digit{width:55px;height:65px;border-radius:15px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.13);display:grid;place-items:center;font-size:25px;font-weight:700;box-shadow:inset 0 0 18px rgba(255,255,255,.06)}
+.pin-digit.active{border-color:#ffe5f4;box-shadow:0 0 18px rgba(255,220,244,.25)}
+#pinInput{position:absolute;width:1px;height:1px;opacity:0}
+.pin-error{min-height:24px;color:#ffe4a9;font-size:13px}
+.key-hint{font-size:12px;opacity:.82;margin:14px 0 0}
+.shake{animation:shake .32s}
+@keyframes shake{25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-4px)}}
+#matrixScreen{background:rgba(52,12,44,.08)}
+.matrix-caption{z-index:4;position:relative;text-align:center;pointer-events:none;text-shadow:0 0 16px rgba(255,190,228,.6);padding:20px}
+.matrix-caption h1{font-size:clamp(23px,7vw,38px);font-weight:600}
+.matrix-caption p{font-size:14px}
+.continue{pointer-events:auto;border:1px solid rgba(255,255,255,.45);background:rgba(255,238,248,.14);padding:12px 23px;border-radius:999px;backdrop-filter:blur(8px);margin-top:12px}
+.album-screen{display:block;overflow-y:auto;padding:calc(18px + env(safe-area-inset-top)) 0 calc(22px + env(safe-area-inset-bottom));}
+.album-inner{max-width:1000px;margin:auto;min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.album-title{text-align:center;padding:0 18px 14px;z-index:2}
+.album-title h1{font-size:clamp(25px,7vw,36px);margin-bottom:6px}
+.album-title p{font-size:13px;margin:0}
+.album{width:100%;display:flex;align-items:center;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:14px 7vw 22px;scrollbar-width:none;touch-action:pan-x;cursor:grab}
+.album::-webkit-scrollbar{display:none}
+.album:active{cursor:grabbing}
+.memory{flex:0 0 clamp(210px,65vw,290px);scroll-snap-align:center;position:relative;border-radius:22px;overflow:hidden;border:1px solid rgba(255,220,241,.45);background:rgba(255,255,255,.16);box-shadow:0 14px 34px rgba(57,12,46,.26);transform:translateY(var(--offset,0)) rotate(var(--tilt,0deg));transition:transform .25s,box-shadow .25s}
+.memory:active{transform:translateY(-5px) rotate(0deg) scale(.985)}
+.memory img{display:block;width:100%;height:clamp(225px,40vh,355px);object-fit:cover;background:rgba(255,255,255,.1)}
+.memory .info{padding:13px 14px 16px;background:linear-gradient(180deg,rgba(117,28,80,.38),rgba(70,24,65,.66))}
+.memory .date{font-size:10px;letter-spacing:.12em;color:#ffd3e8;text-transform:uppercase}
+.memory h3{font-size:15px;margin:5px 0 7px}
+.memory .preview{font-size:11px;line-height:1.5;color:#ffe7f4;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin:0}
+.tap-label{text-align:center;font-size:12px;color:#ffe5f2;margin:0 0 5px}
+.modal{position:fixed;inset:0;z-index:10;background:rgba(35,9,30,.4);backdrop-filter:blur(7px);display:flex;align-items:center;justify-content:center;padding:22px;opacity:0;visibility:hidden;transition:.3s}
+.modal.open{opacity:1;visibility:visible}
+.message-card{position:relative;width:min(420px,100%);border-radius:26px;padding:25px 22px 24px;text-align:center;background:linear-gradient(145deg,rgba(255,210,235,.27),rgba(121,37,94,.7));border:1px solid rgba(255,255,255,.3);box-shadow:0 20px 80px rgba(32,6,30,.4);transform:scale(.94);transition:transform .3s}
+.modal.open .message-card{transform:scale(1)}
+.modal-img{width:100%;max-height:220px;object-fit:cover;border-radius:16px;margin-bottom:15px}
+.close{position:absolute;right:12px;top:12px;width:35px;height:35px;border:1px solid rgba(255,255,255,.25);border-radius:50%;background:rgba(65,15,53,.45);font-size:20px}
+.message-date{font-size:11px;letter-spacing:.14em;color:#ffdfef}
+.message-card h2{font-size:23px;margin:8px 0}
+.message-card .wish{font-size:15px;line-height:1.75;color:#fff1f8;margin:10px 0 3px}
+.music{position:fixed;right:13px;top:calc(12px + env(safe-area-inset-top));z-index:8;border:1px solid rgba(255,255,255,.25);background:rgba(95,30,72,.35);border-radius:30px;padding:9px 12px;font-size:12px;backdrop-filter:blur(8px)}
+.zing-player{position:fixed;z-index:20;left:50%;bottom:calc(12px + env(safe-area-inset-bottom));transform:translate(-50%,18px);width:min(360px,calc(100vw - 20px));height:0;opacity:0;visibility:hidden;overflow:hidden;border-radius:14px;background:rgba(40,13,34,.93);box-shadow:0 14px 45px rgba(40,5,30,.45);transition:opacity .25s,transform .25s,height .25s;backdrop-filter:blur(12px)}
+.zing-player.open{height:110px;opacity:1;visibility:visible;transform:translate(-50%,0);padding:6px}
+.zing-player iframe{width:100%;height:100%;border:0;border-radius:10px}
+.zing-close{position:absolute;z-index:2;right:9px;top:7px;width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,.4);background:rgba(55,12,40,.8);font-size:20px}
+@media(max-width:480px){.zing-player.open{height:104px;width:min(340px,calc(100vw - 18px))}}
+@media(min-width:700px){.album{justify-content:center;overflow-x:auto;padding-left:28px;padding-right:28px}.memory{flex-basis:255px}.album-screen{padding-top:30px}}
+@media(prefers-reduced-motion:reduce){*{transition-duration:.01ms!important;animation-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div class="bg-stars"></div>
+<canvas id="sparkleCanvas"></canvas>
+<canvas id="fallCanvas"></canvas>
+<button class="music" id="musicBtn">♫ Phát nhạc</button>
+<audio id="backgroundAudio" src="music/videoplayback.mp3" loop></audio>
+
+<!-- SCREEN 1: PIN (đã bỏ trang QR, bắt đầu ngay tại PIN) -->
+<section class="screen active" id="pinScreen">
+  <div class="card-shell" id="pinPanel">
+    <div class="kicker">một món quà nhỏ ✧</div>
+    <h1>Chỉ dành cho<br>một người bạn đặc biệt</h1>
+    <p>Nhập mật mã 4 số để mở nhé.</p>
+    <div class="pin-display" id="pinDisplay">
+      <div class="pin-digit"></div><div class="pin-digit"></div><div class="pin-digit"></div><div class="pin-digit"></div>
+    </div>
+    <input id="pinInput" type="tel" inputmode="numeric" autocomplete="one-time-code" maxlength="4">
+    <div class="pin-error" id="pinError"></div>
+    <button class="continue" id="pinEnter">Mở món quà ✦</button>
+    <div class="key-hint">Chạm vào ô số để nhập mật mã</div>
+  </div>
+</section>
+
+<!-- SCREEN 2: CHỮ VÀ SỐ RƠI DỌC -->
+<section class="screen" id="matrixScreen">
+  <div class="matrix-caption">
+    <div class="kicker">✦ gửi đến người bạn ✦</div>
+    <h1>🍀 ✧ ☆</h1>
+    <p>Chạm để bước tiếp</p>
+    <button class="continue" id="openAlbum">Tiếp tục ✧</button>
+  </div>
+</section>
+
+<!-- SCREEN 3: ALBUM KỶ NIỆM / THẺ BẤM MỞ LỜI CHÚC -->
+<section class="screen album-screen" id="albumScreen">
+  <div class="album-inner">
+    <header class="album-title">
+      <div class="kicker">little memories · little wishes</div>
+      <h1>Những điều muốn gửi cậu 🍀</h1>
+      <p>Lướt xem ảnh, chạm vào một tấm để mở lời chúc.</p>
+    </header>
+    <div class="album" id="album"></div>
+    <div class="tap-label">← Lướt ngang · Chạm thẻ để đọc lời chúc →</div>
+  </div>
+</section>
+
+<!-- WISH POPUP -->
+<div class="modal" id="wishModal" role="dialog" aria-modal="true">
+  <article class="message-card">
+    <button class="close" id="closeWish" aria-label="Đóng">×</button>
+    <img class="modal-img" id="modalImage" alt="">
+    <div class="message-date" id="modalDate"></div>
+    <h2 id="modalTitle"></h2>
+    <div class="wish" id="modalWish"></div>
+  </article>
+</div>
+
+<script>
+/* =============== TÙY CHỈNH: PIN VÀ NỘI DUNG =============== */
+const PIN = "2809"; // Thay bằng mã 4 số riêng của bạn
+
+// Nội dung lời chúc Matrix: chỉ đổi câu chữ nếu muốn.
+const MATRIX_TEXT = "🍀 ✧ ☆";
+
+/* Thay ảnh bằng link ảnh của bạn; sửa date/title/preview/wish theo ý.
+   Mỗi card khi chạm sẽ mở lời chúc dài trong wish.
+   Bạn có thể thêm/bớt object trong mảng này. */
+const memories = [
+ {
+ image:"im/anh1.jpg",
+ date:"Gửi cậu trên hành trình mới",
+ title:"Mong mọi chặng đường đều bình an",
+ preview:"Dù đi đâu, mong cậu cũng gặp những điều tốt đẹp...",
+ wish:"Mong rằng trên chặng đường sắp tới, cậu luôn bình an, gặp được những người tử tế và có đủ may mắn để mọi chuyện dần trở nên tốt đẹp. Dù đường đi có đôi lúc khó khăn, mong cậu vẫn luôn vững vàng và không quên rằng phía trước còn rất nhiều điều đáng mong đợi."
+ },
+ {
+ image:"im/anh2.jpg",
+ date:"Một lời chúc cho tương lai",
+ title:"Mong mọi cố gắng đều được đền đáp",
+ preview:"Hy vọng những điều cậu cố gắng hôm nay sẽ có kết quả xứng đáng...",
+ wish:"Chúc cậu trong tương lai sẽ làm được những điều mà mình mong muốn. Mong những cố gắng, những ngày vất vả và cả những lần cậu âm thầm chịu đựng đều được đền đáp xứng đáng. Mong cậu có công việc tốt, cuộc sống ổn định và luôn tự hào về những gì mình đã đạt được."
+ },
+  {
+ image:"im/anh3.jpg",
+ date:"Gửi người sắp đi xa",
+ title:"Ở nơi xa, nhớ chăm sóc bản thân",
+ preview:"Không còn ở gần, mong cậu vẫn luôn sống thật tốt...",
+ wish:"Sau này khi đến một nơi mới, bắt đầu những điều mới, mong cậu sẽ thích nghi thật tốt và tìm được niềm vui trong cuộc sống của mình. Nhớ ăn uống đầy đủ, ngủ nghỉ đúng giờ, đừng vì bận rộn mà bỏ quên bản thân. Mong nơi cậu đến sẽ đối xử dịu dàng với cậu, và dù có chuyện gì cũng mong cậu luôn bình an."
+ },
+ {
+ image:"im/anh5.jpg",
+ date:"Dành cho những ngày không dễ dàng",
+ title:"Mong cậu luôn đủ mạnh mẽ",
+ preview:"Cuộc sống không phải lúc nào cũng thuận lợi, nhưng rồi mọi chuyện sẽ ổn...",
+ wish:"Mình biết phía trước không phải lúc nào cũng dễ dàng, sẽ có những ngày mệt mỏi, thất vọng hay cảm thấy mọi thứ chẳng đi theo ý muốn. Nhưng mong cậu đừng vội nản lòng. Cứ từ từ bước tiếp, nghỉ ngơi khi mệt và cho bản thân thời gian. Mong những ngày khó khăn rồi sẽ qua, nhường chỗ cho những ngày bình yên hơn."
+ },
+ {
+ image:"im/anh8.jpg",
+ date:"Một điều mong muốn",
+ title:"Mong cậu luôn gặp người tử tế",
+ preview:"Mong những mối quan hệ trong tương lai đều mang đến sự chân thành...",
+ wish:"Mong trên hành trình trưởng thành, cậu sẽ gặp được những người thật lòng, những người biết trân trọng cậu, tôn trọng cậu và ở bên cậu khi cần thiết. Mong cậu không phải chịu quá nhiều tổn thương, không phải cố gắng làm hài lòng tất cả mọi người và luôn được sống đúng với con người mình."
+ },
+ {
+ image:"im/anh9.jpg",
+ date:"Lời chúc dành cho những năm tháng sau này",
+ title:"Mong cậu có một cuộc đời đáng sống",
+ preview:"Không cần lúc nào cũng rực rỡ, chỉ cần thật bình yên...",
+ wish:"Mong tương lai của cậu không chỉ có thành công mà còn có cả bình yên. Có công việc khiến cậu cảm thấy xứng đáng, có những người để sẻ chia, có những ngày được cười thật thoải mái và có một nơi để trở về sau những mệt mỏi. Mong cậu sống một cuộc đời mà khi nhìn lại, cậu sẽ cảm thấy mình đã hạnh phúc."
+ },
+ {
+ image:"im/anh10.jpg",
+ date:"Lời cuối cùng mình muốn gửi",
+ title:"Dù sau này ở đâu, mong cậu vẫn hạnh phúc",
+ preview:"Khoảng cách có thể xa hơn, nhưng những kỷ niệm vẫn ở lại...",
+ wish:"Có thể sau này chúng ta sẽ ít gặp nhau hơn, mỗi người bận rộn với con đường riêng, với những mục tiêu và cuộc sống của mình. Nhưng mình vẫn mong cậu sẽ luôn hạnh phúc, luôn bình an và đạt được những điều cậu mong muốn. Cảm ơn cậu vì đã từng xuất hiện, vì những kỷ niệm đã có và vì đã trở thành một phần trong những năm tháng của mình. Đi thật xa, sống thật tốt, có một tương lai thật đẹp nhé. Mong rằng một ngày nào đó, khi gặp lại, chúng ta vẫn có thể cười và kể cho nhau nghe những câu chuyện của ngày xưa."
+ },
+];
+
+/* =============== CHUYỂN SCREEN =============== */
+const screens=[...document.querySelectorAll(".screen")];
+function show(id){screens.forEach(s=>s.classList.toggle("active",s.id===id));}
+const pinInput=document.getElementById("pinInput"),digits=[...document.querySelectorAll(".pin-digit")];
+function updatePin(){digits.forEach((d,i)=>{d.textContent=pinInput.value[i]?"●":"";d.classList.toggle("active",i===pinInput.value.length&&pinInput.value.length<4);});}
+digits.forEach(d=>d.addEventListener("click",()=>pinInput.focus()));
+document.getElementById("pinPanel").addEventListener("click",e=>{if(!e.target.closest("button"))pinInput.focus();});
+document.getElementById("pinEnter").addEventListener("click",checkPin);
+pinInput.addEventListener("input",()=>{pinInput.value=pinInput.value.replace(/\D/g,"").slice(0,4);updatePin();if(pinInput.value.length===4)checkPin();});
+pinInput.addEventListener("keydown",e=>{if(e.key==="Enter")checkPin();});
+function checkPin(){
+ if(pinInput.value!==PIN){if(pinInput.value.length<4)return;document.getElementById("pinError").textContent="Mã chưa đúng, thử lại nhé 🍀";const panel=document.getElementById("pinPanel");panel.classList.remove("shake");void panel.offsetWidth;panel.classList.add("shake");if(navigator.vibrate)navigator.vibrate(80);setTimeout(()=>{pinInput.value="";updatePin();},500);return;}
+ document.getElementById("pinError").textContent="";show("matrixScreen");startFall();
+}
+
+/* =============== MATRIX FALL: CHỈ CHỮ / SỐ / KÝ TỰ RƠI =============== */
+const fallCanvas=document.getElementById("fallCanvas"),fctx=fallCanvas.getContext("2d");
+let fw,fh,dpr,streams=[],fallRAF;
+const alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789🍀☆✦✧";
+function setupFall(){
+ dpr=Math.min(devicePixelRatio||1,2);fw=innerWidth;fh=innerHeight;
+ fallCanvas.width=fw*dpr;fallCanvas.height=fh*dpr;fallCanvas.style.width=fw+"px";fallCanvas.style.height=fh+"px";fctx.setTransform(dpr,0,0,dpr,0,0);
+ const font=Math.max(13,Math.min(20,fw/28)),count=Math.ceil(fw/font);
+ streams=Array.from({length:count},()=>({y:Math.random()*-fh/font,speed:.08+Math.random()*.35,font,alpha:.22+Math.random()*.55}));
+}
+function fallFrame(){
+ fctx.clearRect(0,0,fw,fh);
+ streams.forEach((s,i)=>{
+   const x=i*s.font,y=s.y*s.font;
+   fctx.font=`${s.font}px monospace`;
+   for(let k=0;k<3;k++){
+    const char=alphabet[Math.floor(Math.random()*alphabet.length)];
+    const yy=y-k*s.font*1.2;if(yy<0)continue;
+    fctx.fillStyle=`rgba(255,${170+Math.floor(Math.random()*70)},${220},${s.alpha*(1-k*.25)})`;
+    fctx.fillText(char,x,yy);
+   }
+   s.y+=s.speed;
+   if(y>fh&&Math.random()>.97)s.y=Math.random()*-18;
+ });
+ fallRAF=requestAnimationFrame(fallFrame);
+}
+function startFall(){setupFall();if(fallRAF)cancelAnimationFrame(fallRAF);fallFrame();}
+window.addEventListener("resize",()=>{if(fallRAF)setupFall();});
+document.getElementById("openAlbum").addEventListener("click",()=>{show("albumScreen");});
+
+/* =============== ALBUM CARD + WISH MODAL =============== */
+const album=document.getElementById("album");
+memories.forEach((m,i)=>{
+ const card=document.createElement("button");card.type="button";card.className="memory";
+ card.style.setProperty("--offset",`${i%2===0?-5:8}px`);card.style.setProperty("--tilt",`${i%2===0?-1.5:1.5}deg`);
+ card.innerHTML=`<img src="${m.image}" alt="${m.title}" loading="lazy"><div class="info"><div class="date">${m.date}</div><h3>${m.title}</h3><p class="preview">${m.preview}</p></div>`;
+ card.addEventListener("click",()=>openWish(m));album.appendChild(card);
+});
+function openWish(m){
+ document.getElementById("modalImage").src=m.image;document.getElementById("modalImage").alt=m.title;
+ document.getElementById("modalDate").textContent=m.date;document.getElementById("modalTitle").textContent=m.title;
+ document.getElementById("modalWish").textContent=m.wish;document.getElementById("wishModal").classList.add("open");
+}
+function closeWish(){document.getElementById("wishModal").classList.remove("open");}
+document.getElementById("closeWish").addEventListener("click",closeWish);
+document.getElementById("wishModal").addEventListener("click",e=>{if(e.target.id==="wishModal")closeWish();});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeWish();});
+
+/* =============== KIM TUYẾN / SAO TRỜI =============== */
+const sparkCanvas=document.getElementById("sparkleCanvas"),sctx=sparkCanvas.getContext("2d");
+let sw,sh,stars=[],sparkRAF;
+function resizeSpark(){
+ const ratio=Math.min(devicePixelRatio||1,2);sw=innerWidth;sh=innerHeight;
+ sparkCanvas.width=sw*ratio;sparkCanvas.height=sh*ratio;sparkCanvas.style.width=sw+"px";sparkCanvas.style.height=sh+"px";sctx.setTransform(ratio,0,0,ratio,0,0);
+ stars=Array.from({length:Math.min(180,Math.floor(sw*sh/4200))},()=>({x:Math.random()*sw,y:Math.random()*sh,r:.3+Math.random()*1.5,phase:Math.random()*6.28,speed:.008+Math.random()*.025}));
+}
+function sparkFrame(){
+ sctx.clearRect(0,0,sw,sh);
+ stars.forEach(st=>{
+  st.phase+=st.speed;const a=.25+.65*(.5+.5*Math.sin(st.phase));
+  sctx.beginPath();sctx.arc(st.x,st.y,st.r,0,Math.PI*2);sctx.fillStyle=`rgba(255,235,250,${a})`;sctx.shadowColor="#fff0fb";sctx.shadowBlur=4+st.r*3;sctx.fill();sctx.shadowBlur=0;
+  if(Math.random()<.006){sctx.beginPath();sctx.moveTo(st.x-3,st.y);sctx.lineTo(st.x+3,st.y);sctx.moveTo(st.x,st.y-3);sctx.lineTo(st.x,st.y+3);sctx.strokeStyle=`rgba(255,255,255,${a})`;sctx.stroke();}
+ });
+ sparkRAF=requestAnimationFrame(sparkFrame);
+}
+resizeSpark();sparkFrame();window.addEventListener("resize",resizeSpark);
+
+/* =============== NHẠC NỀN =============== */
+const musicBtn = document.getElementById("musicBtn");
+const backgroundAudio = document.getElementById("backgroundAudio");
+
+musicBtn.addEventListener("click", async () => {
+  if (backgroundAudio.paused) {
+    try {
+      await backgroundAudio.play();
+      musicBtn.textContent = "♫ Tạm dừng";
+    } catch (e) {
+      musicBtn.textContent = "♫ Không phát được nhạc";
+      console.error("Không tìm thấy file nhạc:", e);
+    }
+  } else {
+    backgroundAudio.pause();
+    musicBtn.textContent = "♫ Phát nhạc";
+  }
+});
+</script>
+</body>
+</html>
